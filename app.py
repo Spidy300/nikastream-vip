@@ -339,8 +339,12 @@ def fetch_episodes(ani_id):
     try:
         encoded = encode_token(ani_id)
         if not encoded: return {"error": "Token encryption failed"}, 500
-        
-        response = requests.get(ANIMEKAI_EPISODES_URL, params={"ani_id": ani_id, "_": encoded}, headers=AJAX_HEADERS, timeout=15)
+
+        scraper = cloudscraper.create_scraper(browser={"browser": "chrome", "platform": "windows", "mobile": False})
+        scraper.headers.update(AJAX_HEADERS)
+        scraper.get(ANIMEKAI_URL, timeout=15)
+
+        response = scraper.get(ANIMEKAI_EPISODES_URL, params={"ani_id": ani_id, "_": encoded}, timeout=15)
         response.raise_for_status()
         html = response.json().get("result", "")
         if not html: return []
@@ -366,8 +370,12 @@ def fetch_servers(ep_token):
     try:
         encoded = encode_token(ep_token)
         if not encoded: return {"error": "Token encryption failed"}, 500
-        
-        response = requests.get(ANIMEKAI_SERVERS_URL, params={"token": ep_token, "_": encoded}, headers=AJAX_HEADERS, timeout=15)
+
+        scraper = cloudscraper.create_scraper(browser={"browser": "chrome", "platform": "windows", "mobile": False})
+        scraper.headers.update(AJAX_HEADERS)
+        scraper.get(ANIMEKAI_URL, timeout=15)  # warm up CF cookies
+
+        response = scraper.get(ANIMEKAI_SERVERS_URL, params={"token": ep_token, "_": encoded}, timeout=15)
         response.raise_for_status()
         html = response.json().get("result", "")
         soup = BeautifulSoup(html, "html.parser")
